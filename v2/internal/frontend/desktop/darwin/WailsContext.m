@@ -265,6 +265,11 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
     self.webview = [WKWebView alloc];
     CGRect init = { 0,0,0,0 };
     [self.webview initWithFrame:init configuration:config];
+
+    // :Custom: macOS rounded corners of window
+    self.webview.layer.cornerRadius = 10.0;
+    self.webview.layer.masksToBounds = YES;
+
     [contentView addSubview:self.webview];
     [self.webview setAutoresizingMask: NSViewWidthSizable|NSViewHeightSizable];
     CGRect contentViewBounds = [contentView bounds];
