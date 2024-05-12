@@ -426,3 +426,16 @@ void WindowPrint(void *inctx) {
 	}
 #endif
 }
+
+// :Custom: Window Cover
+void SetAlpha(void *inctx, float toAlpha, float takeSeconds) {
+    WailsContext *ctx = (__bridge WailsContext*) inctx;
+    [ctx SetAlpha:toAlpha :takeSeconds];
+}
+
+void SetAsScreenCover(void *inctx, int isCover) {
+    WailsContext *ctx = (__bridge WailsContext*) inctx;
+    ON_MAIN_THREAD(
+        [ctx SetAsScreenCover:isCover];
+    );
+}

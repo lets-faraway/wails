@@ -6,6 +6,7 @@
 //  Created by Lea Anthony on 10/10/21.
 //
 
+#include <AppKit/AppKit.h>
 #import <Foundation/Foundation.h>
 #import <WebKit/WebKit.h>
 #import "WailsContext.h"
@@ -179,6 +180,7 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
         [effectView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
         [effectView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
         [effectView setState:NSVisualEffectStateActive];
+        [effectView setMaterial:NSVisualEffectMaterialDark];
         [contentView addSubview:effectView positioned:NSWindowBelow relativeTo:nil];
     }
     
@@ -329,6 +331,35 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
 - (void) Quit {
     processMessage("Q");
+}
+
+// :Custom: Window Cover
+- (void) SetAlpha: (float)toAlpha :(float)takeSeconds {
+    NSArray *subviews = [[self.mainWindow contentView] subviews];
+    for (NSInteger i = 0; i < subviews.count; i++) {
+        NSView *subview = subviews[i];
+        [NSAnimationContext
+            runAnimationGroup:^(NSAnimationContext *_Nonnull context) {
+                [context setDuration:takeSeconds];
+                [[subview animator] setAlphaValue:toAlpha];
+            }
+            completionHandler:nil];
+        return;
+    }
+}
+
+- (void) SetAsScreenCover:(int)isCover {
+    if (self.shuttingDown) return;
+
+    if(isCover){
+        [self.mainWindow setLevel:(NSWindowLevel)NSStatusWindowLevel];
+        NSRect screenRect = [[NSScreen mainScreen] frame];
+        [self.mainWindow setFrame:screenRect display:TRUE animate:FALSE];
+        [self.mainWindow setHasShadow:NO];
+    } else {
+        [self.mainWindow setLevel:(NSWindowLevel)NSNormalWindowLevel];
+        [self.mainWindow setHasShadow:YES];
+    }
 }
 
 - (void) loadRequest :(NSString*)url {

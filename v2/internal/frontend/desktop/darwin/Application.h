@@ -43,6 +43,10 @@ void ExecJS(void* ctx, const char*);
 void Quit(void*);
 void WindowPrint(void* ctx);
 
+// :Custom: Window Cover
+void SetAlpha(void* ctx, float toAlpha, float takeSeconds);
+void SetAsScreenCover(void* ctx, int isCover);
+
 const char* GetSize(void *ctx);
 const char* GetPosition(void *ctx);
 const bool IsFullScreen(void *ctx);
