@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/wailsapp/wails/v2/internal/frontend/desktop/windows/winc"
@@ -61,6 +62,14 @@ const (
 
 	// PBT_POWERSETTINGCHANGE - A power setting change event has been received.
 	PBT_POWERSETTINGCHANGE = 32787
+)
+
+const (
+	FPS = 60
+)
+
+const (
+	LWA_ALPHA = 2
 )
 
 // http://msdn.microsoft.com/en-us/library/windows/desktop/bb773244.aspx
@@ -220,4 +229,38 @@ func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
 		uintptr(unsafe.Pointer(lmpi)),
 	)
 	return ret != 0
+}
+
+func SetAlpha(hwnd uintptr, toAlpha float32, takeSeconds float32) {
+	startTime := time.Now()
+	sleepUnit := int64(1000/FPS - 6)
+	for {
+		currentTime := time.Since(startTime).Milliseconds()
+		if currentTime > int64(takeSeconds) {
+			break
+		}
+
+		currentAlpha := byte(0)
+		if toAlpha == 0 {
+			currentAlpha = byte(255 - float64(currentTime)/float64(takeSeconds)*255)
+		} else {
+			currentAlpha = byte(float64(currentTime) / float64(takeSeconds) * float64(toAlpha))
+		}
+		procSetLayeredWindowAttributes.Call(
+			hwnd,
+			0,
+			uintptr(currentAlpha),
+			uintptr(LWA_ALPHA),
+		)
+		time.Sleep(time.Duration(sleepUnit) * time.Millisecond)
+	}
+}
+
+func SetAlphaZero(hwnd uintptr) {
+	procSetLayeredWindowAttributes.Call(
+		hwnd,
+		0,
+		uintptr(0),
+		uintptr(LWA_ALPHA),
+	)
 }
