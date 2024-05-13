@@ -64,14 +64,6 @@ const (
 	PBT_POWERSETTINGCHANGE = 32787
 )
 
-const (
-	FPS = 60
-)
-
-const (
-	LWA_ALPHA = 2
-)
-
 // http://msdn.microsoft.com/en-us/library/windows/desktop/bb773244.aspx
 type MARGINS struct {
 	CxLeftWidth, CxRightWidth, CyTopHeight, CyBottomHeight int32
@@ -231,36 +223,58 @@ func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
 	return ret != 0
 }
 
+// :Custom: Window Cover for Windows
+var rawAlpha = float32(255.0)
+
 func SetAlpha(hwnd uintptr, toAlpha float32, takeSeconds float32) {
-	startTime := time.Now()
-	sleepUnit := int64(1000/FPS - 6)
-	for {
-		currentTime := time.Since(startTime).Milliseconds()
-		if currentTime > int64(takeSeconds) {
-			break
-		}
+	const LWA_ALPHA = 0x00000002
 
-		currentAlpha := byte(0)
-		if toAlpha == 0 {
-			currentAlpha = byte(255 - float64(currentTime)/float64(takeSeconds)*255)
-		} else {
-			currentAlpha = byte(float64(currentTime) / float64(takeSeconds) * float64(toAlpha))
+	if takeSeconds == 0 {
+		if ret, _, _ := procSetLayeredWindowAttributes.Call(
+			hwnd, 0, uintptr(toAlpha), uintptr(LWA_ALPHA),
+		); ret == 1 {
+			rawAlpha = toAlpha
 		}
-		procSetLayeredWindowAttributes.Call(
-			hwnd,
-			0,
-			uintptr(currentAlpha),
-			uintptr(LWA_ALPHA),
-		)
-		time.Sleep(time.Duration(sleepUnit) * time.Millisecond)
 	}
-}
 
-func SetAlphaZero(hwnd uintptr) {
-	procSetLayeredWindowAttributes.Call(
-		hwnd,
-		0,
-		uintptr(0),
-		uintptr(LWA_ALPHA),
+	var (
+		fps        = 60
+		steps      = int(takeSeconds * float32(fps))
+		startAlpha = rawAlpha
 	)
+
+	toAlpha *= 255
+
+	aniEaseInOutCubic := func(t float32) float32 {
+		if t < 0.5 {
+			return 4 * t * t * t
+		} else {
+			f := 2*t - 2
+			return 0.5*f*f*f + 1
+		}
+	}
+
+	go func() {
+		ticker := time.NewTicker(time.Duration(float32(1000)/float32(fps)) * time.Millisecond)
+		for i := 0; i <= steps; i++ {
+			if i == steps {
+				ticker.Stop()
+				break
+			}
+			var nextAlpha float32
+			if i == steps-1 {
+				nextAlpha = toAlpha
+			} else {
+				t := float32(i) / float32(steps)
+				easedT := aniEaseInOutCubic(t)
+				nextAlpha = startAlpha + (toAlpha-startAlpha)*easedT
+			}
+			if ret, _, _ := procSetLayeredWindowAttributes.Call(
+				hwnd, 0, uintptr(nextAlpha), uintptr(LWA_ALPHA),
+			); ret == 1 {
+				rawAlpha = nextAlpha
+			}
+			<-ticker.C
+		}
+	}()
 }

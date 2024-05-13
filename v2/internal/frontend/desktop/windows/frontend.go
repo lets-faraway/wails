@@ -848,11 +848,13 @@ func (f *Frontend) startSecondInstanceProcessor() {
 	}
 }
 
-// :Custom: Window Cover
+// :Custom: Window Cover for Windows
 func (f *Frontend) WindowSetAlpha(toAlpha float32, takeSeconds float32) {
 	f.mainWindow.SetAlpha(toAlpha, takeSeconds)
 }
 
 func (f *Frontend) WindowSetAsScreenCover(b bool) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 	f.mainWindow.SetAsScreenCover(b)
 }

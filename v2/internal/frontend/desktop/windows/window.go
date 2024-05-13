@@ -2,11 +2,11 @@
 
 package windows
 
-import "C"
 import (
-	"github.com/wailsapp/go-webview2/pkg/edge"
 	"sync"
 	"unsafe"
+
+	"github.com/wailsapp/go-webview2/pkg/edge"
 
 	"github.com/wailsapp/wails/v2/internal/frontend/desktop/windows/win32"
 	"github.com/wailsapp/wails/v2/internal/system/operatingsystem"
@@ -336,17 +336,21 @@ func invokeSync[T any](cba *Window, fn func() (T, error)) (res T, err error) {
 	return res, err
 }
 
-// :Custom: Window Cover
+// :Custom: Window Cover for Windows
 func (w *Window) SetAlpha(toAlpha float32, takeSeconds float32) {
-	w32.SetWindowLong(w.Handle(), w32.GWL_EXSTYLE, uint32(w32.WS_EX_LAYERED))
 	win32.SetAlpha(w.Handle(), toAlpha, takeSeconds)
-}
-func (w *Window) SetAlphaZero() {
-	win32.SetAlphaZero(w.Handle())
 }
 
 func (w *Window) SetAsScreenCover(b bool) {
-	w.SetAlphaZero()
-	w.Fullscreen()
-	w.SetAlpha(255, 2000)
+	lStyle := w32.GetWindowLong(w.Handle(), w32.GWL_EXSTYLE)
+	if b {
+		w.Fullscreen()
+		lStyle |= w32.WS_EX_LAYERED
+		w32.SetWindowLong(w.Handle(), w32.GWL_EXSTYLE, uint32(lStyle))
+	} else {
+		w.UnFullscreen()
+		lStyle &= ^w32.WS_EX_LAYERED
+		w32.SetWindowLong(w.Handle(), w32.GWL_EXSTYLE, uint32(lStyle))
+	}
+	w.SetAlwaysOnTop(b)
 }
