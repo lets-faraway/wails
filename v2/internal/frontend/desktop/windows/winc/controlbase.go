@@ -166,7 +166,7 @@ func (cba *ControlBase) SetTranslucentBackground() {
 	var accent = w32.ACCENT_POLICY{
 		AccentState:   w32.ACCENT_ENABLE_BLURBEHIND,
 		AccentFlags:   0x2,
-		GradientColor: 0xaa000000,
+		GradientColor: 0xbb000000,
 	}
 	var data w32.WINDOWCOMPOSITIONATTRIBDATA
 	data.Attrib = w32.WCA_ACCENT_POLICY
