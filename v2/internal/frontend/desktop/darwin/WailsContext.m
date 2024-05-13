@@ -174,14 +174,14 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
     
     id contentView = [self.mainWindow contentView];
     if (windowIsTranslucent) {
-        NSVisualEffectView *effectView = [NSVisualEffectView alloc];
+        self.effectView = [NSVisualEffectView alloc];
         NSRect bounds = [contentView bounds];
-        [effectView initWithFrame:bounds];
-        [effectView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-        [effectView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
-        [effectView setState:NSVisualEffectStateActive];
-        [effectView setMaterial:NSVisualEffectMaterialDark];
-        [contentView addSubview:effectView positioned:NSWindowBelow relativeTo:nil];
+        [self.effectView initWithFrame:bounds];
+        [self.effectView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        [self.effectView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
+        [self.effectView setState:NSVisualEffectStateActive];
+        [self.effectView setMaterial:NSVisualEffectMaterialDark];
+        [contentView addSubview:self.effectView positioned:NSWindowBelow relativeTo:nil];
     }
     
     if (appearance != nil) {
@@ -335,23 +335,20 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
 // :Custom: Window Cover
 - (void) SetAlpha: (float)toAlpha :(float)takeSeconds {
-    NSArray *subviews = [[self.mainWindow contentView] subviews];
-    for (NSInteger i = 0; i < subviews.count; i++) {
-        NSView *subview = subviews[i];
-        [NSAnimationContext
-            runAnimationGroup:^(NSAnimationContext *_Nonnull context) {
-                [context setDuration:takeSeconds];
-                [[subview animator] setAlphaValue:toAlpha];
-            }
-            completionHandler:nil];
+    if (self.effectView == nil)
         return;
-    }
+    [NSAnimationContext
+        runAnimationGroup:^(NSAnimationContext *_Nonnull context) {
+            [context setDuration:takeSeconds];
+            [[self.effectView animator] setAlphaValue:toAlpha];
+        }
+        completionHandler:nil];
 }
 
 - (void) SetAsScreenCover:(int)isCover {
-    if (self.shuttingDown) return;
-
-    if(isCover){
+    if (self.shuttingDown)
+        return;
+    if (isCover) {
         [self.mainWindow setLevel:(NSWindowLevel)NSStatusWindowLevel];
         NSRect screenRect = [[NSScreen mainScreen] frame];
         [self.mainWindow setFrame:screenRect display:TRUE animate:FALSE];

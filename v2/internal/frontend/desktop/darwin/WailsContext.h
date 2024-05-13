@@ -32,6 +32,7 @@
 @interface WailsContext : NSObject <WKURLSchemeHandler,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate>
 
 @property (retain) WailsWindow* mainWindow;
+@property (retain) NSVisualEffectView* effectView;
 @property (retain) WKWebView* webview;
 @property (nonatomic, assign) id appdelegate;
 
