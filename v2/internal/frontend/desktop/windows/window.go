@@ -358,7 +358,8 @@ func (w *Window) SetAsScreenCover(b bool) {
 		w.Hide()
 	} else {
 		w.Hide()
-		lStyle &= ^w32.WS_EX_LAYERED
+		lStyle |= (w32.WS_EX_TOOLWINDOW)
+		lStyle &= (^w32.WS_EX_LAYERED &^ w32.WS_EX_APPWINDOW)
 		w32.SetWindowLong(w.Handle(), w32.GWL_EXSTYLE, uint32(lStyle))
 		w.UnFullscreenEx(true)
 	}
