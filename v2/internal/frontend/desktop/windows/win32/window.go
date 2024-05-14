@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/wailsapp/wails/v2/internal/frontend/desktop/windows/winc"
@@ -220,4 +221,60 @@ func GetMonitorInfo(hMonitor HMONITOR, lmpi *MONITORINFO) bool {
 		uintptr(unsafe.Pointer(lmpi)),
 	)
 	return ret != 0
+}
+
+// :Custom: Window Cover for Windows
+var rawAlpha = float32(255.0)
+
+func SetAlpha(hwnd uintptr, toAlpha float32, takeSeconds float32) {
+	const LWA_ALPHA = 0x00000002
+
+	if takeSeconds == 0 {
+		if ret, _, _ := procSetLayeredWindowAttributes.Call(
+			hwnd, 0, uintptr(toAlpha), uintptr(LWA_ALPHA),
+		); ret == 1 {
+			rawAlpha = toAlpha
+		}
+	}
+
+	var (
+		fps        = 60
+		steps      = int(takeSeconds * float32(fps))
+		startAlpha = rawAlpha
+	)
+
+	toAlpha *= 255
+
+	aniEaseInOutCubic := func(t float32) float32 {
+		if t < 0.5 {
+			return 4 * t * t * t
+		} else {
+			f := 2*t - 2
+			return 0.5*f*f*f + 1
+		}
+	}
+
+	go func() {
+		ticker := time.NewTicker(time.Duration(float32(1000)/float32(fps)) * time.Millisecond)
+		for i := 0; i <= steps; i++ {
+			if i == steps {
+				ticker.Stop()
+				break
+			}
+			var nextAlpha float32
+			if i == steps-1 {
+				nextAlpha = toAlpha
+			} else {
+				t := float32(i) / float32(steps)
+				easedT := aniEaseInOutCubic(t)
+				nextAlpha = startAlpha + (toAlpha-startAlpha)*easedT
+			}
+			if ret, _, _ := procSetLayeredWindowAttributes.Call(
+				hwnd, 0, uintptr(nextAlpha), uintptr(LWA_ALPHA),
+			); ret == 1 {
+				rawAlpha = nextAlpha
+			}
+			<-ticker.C
+		}
+	}()
 }

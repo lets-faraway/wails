@@ -3,9 +3,10 @@
 package windows
 
 import (
-	"github.com/wailsapp/go-webview2/pkg/edge"
 	"sync"
 	"unsafe"
+
+	"github.com/wailsapp/go-webview2/pkg/edge"
 
 	"github.com/wailsapp/wails/v2/internal/frontend/desktop/windows/win32"
 	"github.com/wailsapp/wails/v2/internal/system/operatingsystem"
@@ -136,6 +137,10 @@ func NewWindow(parent winc.Controller, appoptions *options.App, versionInfo *ope
 }
 
 func (w *Window) Fullscreen() {
+	w.FullscreenEx(false)
+}
+
+func (w *Window) FullscreenEx(isHide bool) {
 	if w.Form.IsFullScreen() {
 		return
 	}
@@ -144,17 +149,21 @@ func (w *Window) Fullscreen() {
 	}
 	w.Form.SetMaxSize(0, 0)
 	w.Form.SetMinSize(0, 0)
-	w.Form.Fullscreen()
+	w.Form.FullscreenEx(isHide)
 }
 
 func (w *Window) UnFullscreen() {
+	w.UnFullscreenEx(false)
+}
+
+func (w *Window) UnFullscreenEx(isHide bool) {
 	if !w.Form.IsFullScreen() {
 		return
 	}
 	if w.framelessWithDecorations {
 		win32.ExtendFrameIntoClientArea(w.Handle(), true)
 	}
-	w.Form.UnFullscreen()
+	w.Form.UnFullscreenEx(isHide)
 	w.SetMinSize(w.minWidth, w.minHeight)
 	w.SetMaxSize(w.maxWidth, w.maxHeight)
 }
@@ -333,4 +342,25 @@ func invokeSync[T any](cba *Window, fn func() (T, error)) (res T, err error) {
 	})
 	wg.Wait()
 	return res, err
+}
+
+// :Custom: Window Cover for Windows
+func (w *Window) SetAlpha(toAlpha float32, takeSeconds float32) {
+	win32.SetAlpha(w.Handle(), toAlpha, takeSeconds)
+}
+
+func (w *Window) SetAsScreenCover(b bool) {
+	lStyle := w32.GetWindowLong(w.Handle(), w32.GWL_EXSTYLE)
+	if b {
+		w.FullscreenEx(true)
+		lStyle |= w32.WS_EX_LAYERED
+		w32.SetWindowLong(w.Handle(), w32.GWL_EXSTYLE, uint32(lStyle))
+		w.Hide()
+	} else {
+		w.Hide()
+		lStyle &= ^w32.WS_EX_LAYERED
+		w32.SetWindowLong(w.Handle(), w32.GWL_EXSTYLE, uint32(lStyle))
+		w.UnFullscreenEx(true)
+	}
+	w.SetAlwaysOnTop(b)
 }

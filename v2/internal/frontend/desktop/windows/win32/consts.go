@@ -29,6 +29,7 @@ var (
 	procEmptyClipboard             = moduser32.NewProc("EmptyClipboard")
 	procGetClipboardData           = moduser32.NewProc("GetClipboardData")
 	procSetClipboardData           = moduser32.NewProc("SetClipboardData")
+	procSetLayeredWindowAttributes = moduser32.NewProc("SetLayeredWindowAttributes")
 )
 var (
 	moddwmapi                        = syscall.NewLazyDLL("dwmapi.dll")

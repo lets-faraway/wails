@@ -159,8 +159,14 @@ func (cba *ControlBase) Close() {
 }
 
 func (cba *ControlBase) SetTranslucentBackground() {
+	// :Custom: Window Cover for Windows
+	// Referer
+	// - https://gist.github.com/sylveon/9c199bb6684fe7dffcba1e3d383fb609
+	// - https://stackoverflow.com/questions/32724187/how-do-you-set-the-glass-blend-colour-on-windows-10
 	var accent = w32.ACCENT_POLICY{
-		AccentState: w32.ACCENT_ENABLE_BLURBEHIND,
+		AccentState:   w32.ACCENT_ENABLE_BLURBEHIND,
+		AccentFlags:   0x2,
+		GradientColor: 0xbb000000,
 	}
 	var data w32.WINDOWCOMPOSITIONATTRIBDATA
 	data.Attrib = w32.WCA_ACCENT_POLICY

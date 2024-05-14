@@ -172,6 +172,10 @@ func (fm *Form) Center() {
 }
 
 func (fm *Form) Fullscreen() {
+	fm.FullscreenEx(false)
+}
+
+func (fm *Form) FullscreenEx(isHide bool) {
 	if fm.isFullscreen {
 		return
 	}
@@ -192,6 +196,10 @@ func (fm *Form) Fullscreen() {
 	w32.SetWindowLong(fm.hwnd, w32.GWL_STYLE, fm.previousWindowStyle & ^uint32(w32.WS_OVERLAPPEDWINDOW) | (w32.WS_POPUP|w32.WS_VISIBLE))
 	w32.SetWindowLong(fm.hwnd, w32.GWL_EXSTYLE, fm.previousWindowExStyle & ^uint32(w32.WS_EX_DLGMODALFRAME))
 	fm.isFullscreen = true
+	toStyleFlag := uint(w32.SWP_NOOWNERZORDER | w32.SWP_FRAMECHANGED)
+	if isHide {
+		toStyleFlag |= w32.SWP_HIDEWINDOW
+	}
 	w32.SetWindowPos(fm.hwnd, w32.HWND_TOP,
 		int(monitorInfo.RcMonitor.Left),
 		int(monitorInfo.RcMonitor.Top),
@@ -201,6 +209,10 @@ func (fm *Form) Fullscreen() {
 }
 
 func (fm *Form) UnFullscreen() {
+	fm.UnFullscreenEx(false)
+}
+
+func (fm *Form) UnFullscreenEx(isHide bool) {
 	if !fm.isFullscreen {
 		return
 	}
@@ -208,8 +220,11 @@ func (fm *Form) UnFullscreen() {
 	w32.SetWindowLong(fm.hwnd, w32.GWL_EXSTYLE, fm.previousWindowExStyle)
 	w32.SetWindowPlacement(fm.hwnd, &fm.previousWindowPlacement)
 	fm.isFullscreen = false
-	w32.SetWindowPos(fm.hwnd, 0, 0, 0, 0, 0,
-		w32.SWP_NOMOVE|w32.SWP_NOSIZE|w32.SWP_NOZORDER|w32.SWP_NOOWNERZORDER|w32.SWP_FRAMECHANGED)
+	toStyleFlag := uint(w32.SWP_NOMOVE | w32.SWP_NOSIZE | w32.SWP_NOZORDER | w32.SWP_NOOWNERZORDER | w32.SWP_FRAMECHANGED)
+	if isHide {
+		toStyleFlag |= w32.SWP_HIDEWINDOW
+	}
+	w32.SetWindowPos(fm.hwnd, 0, 0, 0, 0, 0, toStyleFlag)
 }
 
 func (fm *Form) IsFullScreen() bool {
