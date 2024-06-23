@@ -56,9 +56,10 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
     NSScreen* screen = [self getCurrentScreen];
     NSRect windowFrame = [self.mainWindow frame];
-    NSRect screenFrame = [screen visibleFrame];
+    NSRect screenFrame = [screen frame];
+    NSRect screenFrameVisible = [screen visibleFrame];
     windowFrame.origin.x = screenFrame.origin.x + (float)x;
-    windowFrame.origin.y = (screenFrame.origin.y + screenFrame.size.height) - windowFrame.size.height - (float)y;
+    windowFrame.origin.y = (screenFrameVisible.origin.y + screenFrameVisible.size.height) - windowFrame.size.height - (float)y;
 
     [self.mainWindow setFrame:windowFrame display:TRUE animate:FALSE];
 }
