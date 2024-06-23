@@ -123,6 +123,10 @@ type Frontend interface {
 	WindowClose()
 	WindowPrint()
 
+	// :Custom: Window Cover
+	WindowSetAlpha(toAlpha float32, takeSeconds float32)
+	WindowSetAsScreenCover(b bool)
+
 	// Screen
 	ScreenGetAll() ([]Screen, error)
 

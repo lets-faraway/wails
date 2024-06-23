@@ -184,3 +184,14 @@ func WindowPrint(ctx context.Context) {
 	appFrontend := getFrontend(ctx)
 	appFrontend.WindowPrint()
 }
+
+// :Custom: Window Cover
+func WindowSetAlpha(ctx context.Context, toAlpha float32, takeSeconds float32) {
+	appFrontend := getFrontend(ctx)
+	appFrontend.WindowSetAlpha(toAlpha, takeSeconds)
+}
+
+func WindowSetAsScreenCover(ctx context.Context, b bool) {
+	appFrontend := getFrontend(ctx)
+	appFrontend.WindowSetAsScreenCover(b)
+}

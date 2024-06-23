@@ -5,6 +5,7 @@
 //  Created by Lea Anthony on 10/10/21.
 //
 
+#include <AppKit/AppKit.h>
 #import <Foundation/Foundation.h>
 #import <WebKit/WebKit.h>
 #import "WailsContext.h"
@@ -173,13 +174,14 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
     id contentView = [self.mainWindow contentView];
     if (windowIsTranslucent) {
-        NSVisualEffectView *effectView = [NSVisualEffectView alloc];
+        self.effectView = [NSVisualEffectView alloc];
         NSRect bounds = [contentView bounds];
-        [effectView initWithFrame:bounds];
-        [effectView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-        [effectView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
-        [effectView setState:NSVisualEffectStateActive];
-        [contentView addSubview:effectView positioned:NSWindowBelow relativeTo:nil];
+        [self.effectView initWithFrame:bounds];
+        [self.effectView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        [self.effectView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
+        [self.effectView setState:NSVisualEffectStateActive];
+        [self.effectView setMaterial:NSVisualEffectMaterialDark];
+        [contentView addSubview:self.effectView positioned:NSWindowBelow relativeTo:nil];
     }
 
     if (appearance != nil) {
@@ -269,6 +271,13 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
     CGRect init = { 0,0,0,0 };
     [self.webview initWithFrame:init configuration:config];
+
+    // :Custom: macOS rounded corners of window
+    if (frameless) {
+        self.webview.layer.cornerRadius = 10.0;
+        self.webview.layer.masksToBounds = YES;
+    }
+
     [contentView addSubview:self.webview];
     [self.webview setAutoresizingMask: NSViewWidthSizable|NSViewHeightSizable];
     CGRect contentViewBounds = [contentView bounds];
@@ -326,6 +335,32 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
 - (void) Quit {
     processMessage("Q");
+}
+
+// :Custom: Window Cover
+- (void) SetAlpha: (float)toAlpha :(float)takeSeconds {
+    if (self.effectView == nil)
+        return;
+    [NSAnimationContext
+        runAnimationGroup:^(NSAnimationContext *_Nonnull context) {
+            [context setDuration:takeSeconds];
+            [[self.effectView animator] setAlphaValue:toAlpha];
+        }
+        completionHandler:nil];
+}
+
+- (void) SetAsScreenCover:(int)isCover {
+    if (self.shuttingDown)
+        return;
+    if (isCover) {
+        [self.mainWindow setLevel:(NSWindowLevel)NSStatusWindowLevel];
+        NSRect screenRect = [[NSScreen mainScreen] frame];
+        [self.mainWindow setFrame:screenRect display:TRUE animate:FALSE];
+        [self.mainWindow setHasShadow:NO];
+    } else {
+        [self.mainWindow setLevel:(NSWindowLevel)NSNormalWindowLevel];
+        [self.mainWindow setHasShadow:YES];
+    }
 }
 
 - (void) loadRequest :(NSString*)url {

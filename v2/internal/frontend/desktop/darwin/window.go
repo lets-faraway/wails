@@ -304,3 +304,12 @@ func (w *Window) UpdateApplicationMenu() {
 func (w Window) Print() {
 	C.WindowPrint(w.context)
 }
+
+// :Custom: Window Cover
+func (w Window) SetAlpha(toAlpha float32, takeSeconds float32) {
+	C.SetAlpha(w.context, C.float(toAlpha), C.float(takeSeconds))
+}
+
+func (w Window) SetAsScreenCover(b bool) {
+	C.SetAsScreenCover(w.context, bool2Cint(b))
+}

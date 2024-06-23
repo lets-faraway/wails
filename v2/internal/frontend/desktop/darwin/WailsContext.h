@@ -33,6 +33,7 @@
 @interface WailsContext : NSObject <WKURLSchemeHandler,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate>
 
 @property (retain) WailsWindow* mainWindow;
+@property (retain) NSVisualEffectView* effectView;
 @property (retain) WailsWebView* webview;
 @property (nonatomic, assign) id appdelegate;
 
@@ -91,6 +92,10 @@ struct Preferences {
 - (void) HideApplication;
 - (void) ShowApplication;
 - (void) Quit;
+
+// :Custom: Window Cover
+- (void) SetAlpha:(float)toAlpha :(float)takeSeconds;
+- (void) SetAsScreenCover:(int)isCover;
 
 -(void) MessageDialog :(NSString*)dialogType :(NSString*)title :(NSString*)message :(NSString*)button1 :(NSString*)button2 :(NSString*)button3 :(NSString*)button4 :(NSString*)defaultButton :(NSString*)cancelButton :(void*)iconData :(int)iconDataLength;
 - (void) OpenFileDialog :(NSString*)title :(NSString*)defaultFilename :(NSString*)defaultDirectory :(bool)allowDirectories :(bool)allowFiles :(bool)canCreateDirectories :(bool)treatPackagesAsDirectories :(bool)resolveAliases :(bool)showHiddenFiles :(bool)allowMultipleSelection :(NSString*)filters;
