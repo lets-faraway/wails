@@ -20,6 +20,12 @@ type Options struct {
 	Appearance           AppearanceType
 	WebviewIsTransparent bool
 	WindowIsTranslucent  bool
+	// WindowCanJoinAllSpaces makes the main window appear on all Desktops (Spaces).
+	// Equivalent to macOS "Assign to: All Desktops" for this window.
+	WindowCanJoinAllSpaces bool
+	// WindowFullScreenAuxiliary allows the window to appear in fullscreen Spaces as an auxiliary window.
+	// Commonly used together with WindowCanJoinAllSpaces.
+	WindowFullScreenAuxiliary bool
 	Preferences          *Preferences
 	DisableZoom          bool
 	// ActivationPolicy     ActivationPolicy

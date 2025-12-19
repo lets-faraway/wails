@@ -85,6 +85,8 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 
 	enableDragAndDrop := C.bool(frontendOptions.DragAndDrop != nil && frontendOptions.DragAndDrop.EnableFileDrop)
 	disableWebViewDragAndDrop := C.bool(frontendOptions.DragAndDrop != nil && frontendOptions.DragAndDrop.DisableWebViewDrop)
+	windowCanJoinAllSpaces := C.bool(false)
+	windowFullScreenAuxiliary := C.bool(false)
 
 	if frontendOptions.Mac != nil {
 		mac := frontendOptions.Mac
@@ -116,6 +118,9 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 		windowIsTranslucent = bool2Cint(mac.WindowIsTranslucent)
 		webviewIsTransparent = bool2Cint(mac.WebviewIsTransparent)
 
+		windowCanJoinAllSpaces = C.bool(mac.WindowCanJoinAllSpaces)
+		windowFullScreenAuxiliary = C.bool(mac.WindowFullScreenAuxiliary)
+
 		appearance = c.String(string(mac.Appearance))
 	}
 	var context *C.WailsContext = C.Create(title, width, height, frameless, resizable, zoomable, fullscreen, fullSizeContent,
@@ -123,6 +128,7 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 		alwaysOnTop, hideWindowOnClose, appearance, windowIsTranslucent, devtoolsEnabled, defaultContextMenuEnabled,
 		windowStartState, startsHidden, minWidth, minHeight, maxWidth, maxHeight, enableFraudulentWebsiteWarnings,
 		preferences, singleInstanceEnabled, singleInstanceUniqueId, enableDragAndDrop, disableWebViewDragAndDrop,
+		windowCanJoinAllSpaces, windowFullScreenAuxiliary,
 	)
 
 	// Create menu

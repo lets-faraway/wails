@@ -137,7 +137,7 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
     return NO;
 }
 
-- (void) CreateWindow:(int)width :(int)height :(bool)frameless :(bool)resizable :(bool)zoomable :(bool)fullscreen :(bool)fullSizeContent :(bool)hideTitleBar :(bool)titlebarAppearsTransparent :(bool)hideTitle :(bool)useToolbar :(bool)hideToolbarSeparator :(bool)webviewIsTransparent :(bool)hideWindowOnClose :(NSString*)appearance :(bool)windowIsTranslucent :(int)minWidth :(int)minHeight :(int)maxWidth :(int)maxHeight :(bool)fraudulentWebsiteWarningEnabled :(struct Preferences)preferences :(bool)enableDragAndDrop :(bool)disableWebViewDragAndDrop  {
+- (void) CreateWindow:(int)width :(int)height :(bool)frameless :(bool)resizable :(bool)zoomable :(bool)fullscreen :(bool)fullSizeContent :(bool)hideTitleBar :(bool)titlebarAppearsTransparent :(bool)hideTitle :(bool)useToolbar :(bool)hideToolbarSeparator :(bool)webviewIsTransparent :(bool)hideWindowOnClose :(NSString*)appearance :(bool)windowIsTranslucent :(int)minWidth :(int)minHeight :(int)maxWidth :(int)maxHeight :(bool)fraudulentWebsiteWarningEnabled :(struct Preferences)preferences :(bool)enableDragAndDrop :(bool)disableWebViewDragAndDrop :(bool)windowCanJoinAllSpaces :(bool)windowFullScreenAuxiliary  {
     NSWindowStyleMask styleMask = 0;
 
     if( !frameless ) {
@@ -159,6 +159,17 @@ typedef void (^schemeTaskCaller)(id<WKURLSchemeTask>);
 
     self.mainWindow = [[WailsWindow alloc] initWithContentRect:NSMakeRect(0, 0, width, height)
                                                       styleMask:styleMask backing:NSBackingStoreBuffered defer:NO];
+    // Configure macOS Spaces (Desktops) behavior.
+    // - NSWindowCollectionBehaviorCanJoinAllSpaces: show on all Desktops (Spaces).
+    // - NSWindowCollectionBehaviorFullScreenAuxiliary: also show in fullscreen Spaces.
+    NSWindowCollectionBehavior collectionBehavior = [self.mainWindow collectionBehavior];
+    if (windowCanJoinAllSpaces) {
+        collectionBehavior |= NSWindowCollectionBehaviorCanJoinAllSpaces;
+    }
+    if (windowFullScreenAuxiliary) {
+        collectionBehavior |= NSWindowCollectionBehaviorFullScreenAuxiliary;
+    }
+    [self.mainWindow setCollectionBehavior:collectionBehavior];
     if (!frameless && useToolbar) {
         id toolbar = [[NSToolbar alloc] initWithIdentifier:@"wails.toolbar"];
         [toolbar autorelease];
