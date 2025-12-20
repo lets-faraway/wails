@@ -4,6 +4,7 @@ package windows
 
 import (
 	"sync"
+	"time"
 	"unsafe"
 
 	"github.com/wailsapp/go-webview2/pkg/edge"
@@ -131,6 +132,17 @@ func NewWindow(parent winc.Controller, appoptions *options.App, versionInfo *ope
 
 	if appoptions.Menu != nil {
 		result.SetApplicationMenu(appoptions.Menu)
+	}
+
+	// Pin window to all virtual desktops if requested
+	if windowsOptions != nil && windowsOptions.WindowCanJoinAllSpaces {
+		if win32.IsVirtualDesktopSupported() {
+			// Delay execution to ensure window is fully created
+			go func() {
+				time.Sleep(100 * time.Millisecond)
+				win32.PinWindow(result.Handle())
+			}()
+		}
 	}
 
 	return result

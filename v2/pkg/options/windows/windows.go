@@ -118,6 +118,11 @@ type Options struct {
 
 	// Configure whether swipe gestures should be enabled
 	EnableSwipeGestures bool
+
+	// WindowCanJoinAllSpaces makes the main window appear on all Virtual Desktops.
+	// Equivalent to macOS "Assign to: All Desktops" for this window.
+	// Requires Windows 10 1803+ or Windows 11.
+	WindowCanJoinAllSpaces bool
 }
 
 func DefaultMessages() *Messages {
