@@ -18,6 +18,7 @@ type AboutInfo struct {
 type Options struct {
 	TitleBar             *TitleBar
 	Appearance           AppearanceType
+	ContentProtection    bool
 	WebviewIsTransparent bool
 	WindowIsTranslucent  bool
 	// WindowCanJoinAllSpaces makes the main window appear on all Desktops (Spaces).
