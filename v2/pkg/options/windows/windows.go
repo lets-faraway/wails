@@ -153,6 +153,14 @@ type Options struct {
 	// Equivalent to macOS "Assign to: All Desktops" for this window.
 	// Requires Windows 10 1803+ or Windows 11.
 	WindowCanJoinAllSpaces bool
+
+	// WebviewLowMemoryWhenHidden puts WebView2 into low-memory mode while the
+	// window is hidden: the controller is marked invisible, its memory usage
+	// target is lowered and, after a short idle delay, the page is suspended
+	// (script timers pause). It is resumed transparently before the window is
+	// shown or any script is run, so events emitted to a hidden window still
+	// arrive. Intended for apps that live hidden in the tray.
+	WebviewLowMemoryWhenHidden bool
 }
 
 func DefaultMessages() *Messages {

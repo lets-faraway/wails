@@ -76,6 +76,12 @@ type Frontend struct {
 	callbackMu      sync.Mutex
 	pendingCallbacks []string
 	drainScheduled  bool
+
+	// Hidden-window webview power state, see webview_power.go. Only touched
+	// on the UI thread.
+	webviewHidden     bool
+	webviewSuspended  bool
+	webviewSuspendGen int
 }
 
 func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.Logger, appBindings *binding.Bindings, dispatcher frontend.Dispatcher) *Frontend {
@@ -317,6 +323,7 @@ func (f *Frontend) WindowHide() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 	f.mainWindow.Hide()
+	f.mainWindow.Invoke(f.webviewEnterLowMemory)
 }
 
 func (f *Frontend) WindowMaximise() {
@@ -433,11 +440,13 @@ func (f *Frontend) ScreenGetAll() ([]Screen, error) {
 }
 
 func (f *Frontend) Show() {
+	f.mainWindow.Invoke(f.webviewLeaveLowMemory)
 	f.mainWindow.Show()
 }
 
 func (f *Frontend) Hide() {
 	f.mainWindow.Hide()
+	f.mainWindow.Invoke(f.webviewEnterLowMemory)
 }
 
 func (f *Frontend) WindowIsMaximised() bool {
@@ -924,6 +933,7 @@ func (f *Frontend) drainCallbacks() {
 	for _, s := range scripts {
 		sb.WriteString(s)
 	}
+	f.wakeWebview()
 	f.chromium.Eval(sb.String())
 }
 
@@ -947,6 +957,7 @@ func (f *Frontend) startResize(border uintptr) error {
 
 func (f *Frontend) ExecJS(js string) {
 	f.mainWindow.Invoke(func() {
+		f.wakeWebview()
 		f.chromium.Eval(js)
 	})
 }
@@ -1008,6 +1019,7 @@ func (f *Frontend) navigationCompleted(sender *edge.ICoreWebView2, args *edge.IC
 
 func (f *Frontend) ShowWindow() {
 	f.mainWindow.Invoke(func() {
+		f.webviewLeaveLowMemory()
 		if !f.mainWindow.hasBeenShown {
 			f.mainWindow.hasBeenShown = true
 			switch f.frontendOptions.WindowStartState {
