@@ -619,10 +619,12 @@ extern void didReceiveNotificationResponse(const char *jsonPayload, const char* 
     }
     if( icon != nil) {
        [alert setIcon:icon];
+       [icon release];
     }
     [alert.window setLevel:NSFloatingWindowLevel];
 
     long response = [alert runModal];
+    [alert release];
     int result;
 
     if( response == NSAlertFirstButtonReturn ) {

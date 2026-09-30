@@ -35,7 +35,9 @@ int screenUniqueID(NSScreen *screen){
 	return aID;
 }
 
+// Called from Go threads, which never drain an autorelease pool.
 Screen GetNthScreen(int nth, void *inctx){
+	@autoreleasepool {
 	WailsContext *ctx = (__bridge WailsContext*) inctx;
 	NSArray<NSScreen *> *screens = [NSScreen screens];
 	NSScreen* nthScreen = [screens objectAtIndex:nth];
@@ -78,6 +80,7 @@ Screen GetNthScreen(int nth, void *inctx){
 		returnScreen.pWidth = (int) pSize.size.width;
 	}
 	return returnScreen;
+	}
 }
 
 */

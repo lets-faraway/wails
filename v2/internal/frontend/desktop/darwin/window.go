@@ -301,12 +301,14 @@ func parseIntDuo(temp string) (int, int) {
 func (w *Window) GetPosition() (int, int) {
 	var _result *C.char = C.GetPosition(w.context)
 	temp := C.GoString(_result)
+	C.free(unsafe.Pointer(_result))
 	return parseIntDuo(temp)
 }
 
 func (w *Window) Size() (int, int) {
 	var _result *C.char = C.GetSize(w.context)
 	temp := C.GoString(_result)
+	C.free(unsafe.Pointer(_result))
 	return parseIntDuo(temp)
 }
 

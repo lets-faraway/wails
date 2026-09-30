@@ -64,9 +64,12 @@ WailsContext* Create(const char* title, int width, int height, int frameless, in
     return result;
 }
 
+// Called from Go threads, which never drain an autorelease pool, so the
+// string is owned here (not autoreleased) and released by the main-thread
+// block once used.
 void ExecJS(void* inctx, const char *script) {
     WailsContext *ctx = (__bridge WailsContext*) inctx;
-    NSString *nsscript = safeInit(script);
+    NSString *nsscript = [[NSString alloc] initWithUTF8String:script];
     ON_MAIN_THREAD(
        [ctx ExecJS:nsscript];
        [nsscript release];
@@ -75,9 +78,10 @@ void ExecJS(void* inctx, const char *script) {
 
 void SetTitle(void* inctx, const char *title) {
     WailsContext *ctx = (__bridge WailsContext*) inctx;
-    NSString *_title = safeInit(title);
+    NSString *_title = title != nil ? [[NSString alloc] initWithUTF8String:title] : nil;
     ON_MAIN_THREAD(
        [ctx SetTitle:_title];
+       [_title release];
     );
 }
 
@@ -173,23 +177,29 @@ void ToggleMaximise(void* inctx) {
     );
 }
 
+// The returned string is malloc'ed; the caller frees it.
 const char* GetSize(void *inctx) {
-    WailsContext *ctx = (__bridge WailsContext*) inctx;
-    NSRect frame = [ctx.mainWindow frame];
-    NSString *result = [NSString stringWithFormat:@"%d,%d", (int)frame.size.width, (int)frame.size.height];
-    return [result UTF8String];
+    @autoreleasepool {
+        WailsContext *ctx = (__bridge WailsContext*) inctx;
+        NSRect frame = [ctx.mainWindow frame];
+        NSString *result = [NSString stringWithFormat:@"%d,%d", (int)frame.size.width, (int)frame.size.height];
+        return strdup([result UTF8String]);
+    }
 }
 
+// The returned string is malloc'ed; the caller frees it.
 const char* GetPosition(void *inctx) {
-    WailsContext *ctx = (__bridge WailsContext*) inctx;
-    NSScreen* screen = [ctx getCurrentScreen];
-    NSRect windowFrame = [ctx.mainWindow frame];
-    NSRect screenFrame = [screen visibleFrame];
-    int x = windowFrame.origin.x - screenFrame.origin.x;
-    int y = windowFrame.origin.y - screenFrame.origin.y;
-    y = screenFrame.size.height - y - windowFrame.size.height;
-    NSString *result = [NSString stringWithFormat:@"%d,%d",x,y];
-    return [result UTF8String];
+    @autoreleasepool {
+        WailsContext *ctx = (__bridge WailsContext*) inctx;
+        NSScreen* screen = [ctx getCurrentScreen];
+        NSRect windowFrame = [ctx.mainWindow frame];
+        NSRect screenFrame = [screen visibleFrame];
+        int x = windowFrame.origin.x - screenFrame.origin.x;
+        int y = windowFrame.origin.y - screenFrame.origin.y;
+        y = screenFrame.size.height - y - windowFrame.size.height;
+        NSString *result = [NSString stringWithFormat:@"%d,%d",x,y];
+        return strdup([result UTF8String]);
+    }
 }
 
 const bool IsFullScreen(void *inctx) {
