@@ -64,6 +64,7 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 
 	var fullSizeContent, hideTitleBar, zoomable, hideTitle, useToolbar, webviewIsTransparent C.int
 	var titlebarAppearsTransparent, hideToolbarSeparator, windowIsTranslucent, contentProtection C.int
+	var disableEscapeExitsFullscreen C.int
 	var appearance, title *C.char
 	var preferences C.struct_Preferences
 
@@ -113,6 +114,14 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 			if mac.Preferences.FullscreenEnabled.IsSet() {
 				preferences.fullscreenEnabled = bool2CboolPtr(mac.Preferences.FullscreenEnabled.Get())
 			}
+
+			if mac.Preferences.ApplicationNameForUserAgent != "" {
+				preferences.applicationNameForUserAgent = c.String(mac.Preferences.ApplicationNameForUserAgent)
+			}
+
+			if mac.Preferences.EnableAutoplayWithoutUserAction.IsSet() {
+				preferences.enableAutoplayWithoutUserAction = bool2CboolPtr(mac.Preferences.EnableAutoplayWithoutUserAction.Get())
+			}
 		}
 
 		zoomable = bool2Cint(!frontendOptions.Mac.DisableZoom)
@@ -120,6 +129,7 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 		windowIsTranslucent = bool2Cint(mac.WindowIsTranslucent)
 		webviewIsTransparent = bool2Cint(mac.WebviewIsTransparent)
 		contentProtection = bool2Cint(mac.ContentProtection)
+		disableEscapeExitsFullscreen = bool2Cint(mac.DisableEscapeExitsFullscreen)
 
 		windowCanJoinAllSpaces = C.bool(mac.WindowCanJoinAllSpaces)
 		windowFullScreenAuxiliary = C.bool(mac.WindowFullScreenAuxiliary)
@@ -131,7 +141,7 @@ func NewWindow(frontendOptions *options.App, debug bool, devtools bool) *Window 
 		alwaysOnTop, hideWindowOnClose, appearance, windowIsTranslucent, contentProtection, devtoolsEnabled, defaultContextMenuEnabled,
 		windowStartState, startsHidden, minWidth, minHeight, maxWidth, maxHeight, enableFraudulentWebsiteWarnings,
 		preferences, singleInstanceEnabled, singleInstanceUniqueId, enableDragAndDrop, disableWebViewDragAndDrop,
-		windowCanJoinAllSpaces, windowFullScreenAuxiliary,
+		windowCanJoinAllSpaces, windowFullScreenAuxiliary, disableEscapeExitsFullscreen,
 	)
 
 	// Create menu

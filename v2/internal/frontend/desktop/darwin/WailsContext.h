@@ -24,6 +24,7 @@
 
 @property NSSize userMinSize;
 @property NSSize userMaxSize;
+@property bool disableEscapeExitsFullscreen;
 
 - (BOOL) canBecomeKeyWindow;
 - (void) applyWindowConstraints;
@@ -64,9 +65,11 @@ struct Preferences {
   bool *tabFocusesLinks;
   bool *textInteractionEnabled;
   bool *fullscreenEnabled;
+  const char *applicationNameForUserAgent;
+  bool *enableAutoplayWithoutUserAction;
 };
 
-- (void) CreateWindow:(int)width :(int)height :(bool)frameless :(bool)resizable :(bool)zoomable :(bool)fullscreen :(bool)fullSizeContent :(bool)hideTitleBar :(bool)titlebarAppearsTransparent  :(bool)hideTitle :(bool)useToolbar :(bool)hideToolbarSeparator :(bool)webviewIsTransparent :(bool)hideWindowOnClose :(NSString *)appearance :(bool)windowIsTranslucent :(int)minWidth :(int)minHeight :(int)maxWidth :(int)maxHeight :(bool)fraudulentWebsiteWarningEnabled :(struct Preferences)preferences :(bool)enableDragAndDrop :(bool)disableWebViewDragAndDrop :(bool)windowCanJoinAllSpaces :(bool)windowFullScreenAuxiliary;
+- (void) CreateWindow:(int)width :(int)height :(bool)frameless :(bool)resizable :(bool)zoomable :(bool)fullscreen :(bool)fullSizeContent :(bool)hideTitleBar :(bool)titlebarAppearsTransparent  :(bool)hideTitle :(bool)useToolbar :(bool)hideToolbarSeparator :(bool)webviewIsTransparent :(bool)hideWindowOnClose :(NSString *)appearance :(bool)windowIsTranslucent :(int)minWidth :(int)minHeight :(int)maxWidth :(int)maxHeight :(bool)fraudulentWebsiteWarningEnabled :(struct Preferences)preferences :(bool)enableDragAndDrop :(bool)disableWebViewDragAndDrop :(bool)windowCanJoinAllSpaces :(bool)windowFullScreenAuxiliary :(bool)disableEscapeExitsFullscreen;
 - (void) SetSize:(int)width :(int)height;
 - (void) SetPosition:(int)x :(int) y;
 - (void) SetMinSize:(int)minWidth :(int)minHeight;
@@ -97,9 +100,23 @@ struct Preferences {
 - (void) SetAlpha:(float)toAlpha :(float)takeSeconds;
 - (void) SetAsScreenCover:(int)isCover;
 
--(void) MessageDialog :(NSString*)dialogType :(NSString*)title :(NSString*)message :(NSString*)button1 :(NSString*)button2 :(NSString*)button3 :(NSString*)button4 :(NSString*)defaultButton :(NSString*)cancelButton :(void*)iconData :(int)iconDataLength;
+- (void) MessageDialog :(NSString*)dialogType :(NSString*)title :(NSString*)message :(NSString*)button1 :(NSString*)button2 :(NSString*)button3 :(NSString*)button4 :(NSString*)defaultButton :(NSString*)cancelButton :(void*)iconData :(int)iconDataLength;
 - (void) OpenFileDialog :(NSString*)title :(NSString*)defaultFilename :(NSString*)defaultDirectory :(bool)allowDirectories :(bool)allowFiles :(bool)canCreateDirectories :(bool)treatPackagesAsDirectories :(bool)resolveAliases :(bool)showHiddenFiles :(bool)allowMultipleSelection :(NSString*)filters;
 - (void) SaveFileDialog :(NSString*)title :(NSString*)defaultFilename :(NSString*)defaultDirectory :(bool)canCreateDirectories :(bool)treatPackagesAsDirectories :(bool)showHiddenFiles :(NSString*)filters;
+
+- (bool) IsNotificationAvailable;
+- (bool) CheckBundleIdentifier;
+- (bool) EnsureDelegateInitialized;
+- (void) RequestNotificationAuthorization:(int)channelID;
+- (void) CheckNotificationAuthorization:(int)channelID;
+- (void) SendNotification:(int)channelID :(const char *)identifier :(const char *)title :(const char *)subtitle :(const char *)body :(const char *)dataJSON;
+- (void) SendNotificationWithActions:(int)channelID :(const char *)identifier :(const char *)title :(const char *)subtitle :(const char *)body :(const char *)categoryId :(const char *)actionsJSON;
+- (void) RegisterNotificationCategory:(int)channelID :(const char *)categoryId :(const char *)actionsJSON :(bool)hasReplyField :(const char *)replyPlaceholder :(const char *)replyButtonTitle;
+- (void) RemoveNotificationCategory:(int)channelID :(const char *)categoryId;
+- (void) RemoveAllPendingNotifications;
+- (void) RemovePendingNotification:(const char *)identifier;
+- (void) RemoveAllDeliveredNotifications;
+- (void) RemoveDeliveredNotification:(const char *)identifier;
 
 - (void) loadRequest:(NSString*)url;
 - (void) ExecJS:(NSString*)script;
