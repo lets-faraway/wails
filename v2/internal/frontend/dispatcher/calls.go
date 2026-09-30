@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/wailsapp/wails/v2/internal/binding"
 	"github.com/wailsapp/wails/v2/internal/frontend"
 )
 
@@ -31,9 +32,12 @@ func (d *Dispatcher) processCallMessage(message string, sender frontend.Frontend
 		// Lookup method
 		registeredMethod := d.bindingsDB.GetMethod(payload.Name)
 
-		// Check we have it
+		// Check we have it. Answer with an error callback so the frontend
+		// rejects the promise and drops its callback entry.
 		if registeredMethod == nil {
-			return "", fmt.Errorf("method '%s' not registered", payload.Name)
+			errmsg := fmt.Errorf("method '%s' not registered", payload.Name)
+			result, _ := d.NewErrorCallback(errmsg.Error(), payload.CallbackID)
+			return result, errmsg
 		}
 
 		args, err2 := registeredMethod.ParseArgs(payload.Args)
@@ -42,7 +46,7 @@ func (d *Dispatcher) processCallMessage(message string, sender frontend.Frontend
 			result, _ := d.NewErrorCallback(errmsg.Error(), payload.CallbackID)
 			return result, errmsg
 		}
-		result, err = registeredMethod.Call(args)
+		result, err = d.callMethod(registeredMethod, args)
 	}
 
 	callbackMessage := &CallbackMessage{
@@ -66,6 +70,19 @@ func (d *Dispatcher) processCallMessage(message string, sender frontend.Frontend
 	}
 
 	return "c" + string(messageData), nil
+}
+
+// callMethod runs a bound method, turning a panic into an error so the
+// caller still gets a callback (unless panic recovery is disabled).
+func (d *Dispatcher) callMethod(method *binding.BoundMethod, args []interface{}) (result interface{}, err error) {
+	if !d.disablePanicRecovery {
+		defer func() {
+			if e := recover(); e != nil {
+				err = fmt.Errorf("panic in bound method: %v", e)
+			}
+		}()
+	}
+	return method.Call(args)
 }
 
 // CallbackMessage defines a message that contains the result of a call
